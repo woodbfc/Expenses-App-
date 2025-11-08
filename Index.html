@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My First App</title>
+    <style>
+      body { font-family: system-ui, Arial, sans-serif; margin: 2rem; }
+      .card { max-width: 720px; padding: 1.5rem; border: 1px solid #e5e7eb; border-radius: 12px; }
+      button { padding: .6rem 1rem; border: 0; border-radius: 8px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <h1>🚀 My First Web App</h1>
+    <div class="card">
+      <p id="message">Hello! This is your live app.</p>
+      <button id="btn">Click me</button>
+    </div>
+
+    <script>
+      document.getElementById('btn').addEventListener('click', () => {
+        const el = document.getElementById('message');
+        el.textContent = "Button clicked — you’re running real code on a real page!";
+      });
+    </script>
+  </body>
+</html>
