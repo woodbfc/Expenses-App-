@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expenses Tracker</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top, #f1f5f9, #e2e8f0 45%, #cbd5f5);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 3rem 1.5rem 4rem;
+      }
+
+      main {
+        width: min(960px, 100%);
+        display: grid;
+        gap: 1.5rem;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        align-items: flex-start;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.25rem, 5vw, 3rem);
+        letter-spacing: -0.02em;
+        color: #0f172a;
+      }
+
+      p.subtitle {
+        margin: 0;
+        font-size: 1.05rem;
+        color: #334155;
+        max-width: 40ch;
+        line-height: 1.6;
+      }
+
+      section.card {
+        background: #ffffffcc;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 22px;
+        padding: 1.75rem;
+        box-shadow: 0 30px 70px -45px rgba(15, 23, 42, 0.35);
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem 1.25rem;
+        align-items: end;
+      }
+
+      label {
+        display: grid;
+        gap: .5rem;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      input,
+      select {
+        width: 100%;
+        appearance: none;
+        border-radius: 12px;
+        border: 1px solid #cbd5f5;
+        padding: .7rem .9rem;
+        font-size: 1rem;
+        color: #0f172a;
+        background: white;
+        transition: border-color .2s ease, box-shadow .2s ease;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      }
+
+      button {
+        border: none;
+        border-radius: 14px;
+        padding: .85rem 1.4rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        cursor: pointer;
+        transition: transform .15s ease, box-shadow .2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 15px 30px -18px rgba(99, 102, 241, .9);
+      }
+
+      button:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 0.9rem 0.75rem;
+        text-align: left;
+      }
+
+      thead th {
+        font-size: .95rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: #475569;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.45);
+      }
+
+      tbody tr + tr td {
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+      }
+
+      tbody td {
+        color: #1e293b;
+      }
+
+      .totals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        font-weight: 600;
+      }
+
+      .chip {
+        background: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+        padding: .55rem 1rem;
+        border-radius: 999px;
+      }
+
+      .empty {
+        text-align: center;
+        padding: 2.5rem 0;
+        color: #64748b;
+        font-size: 1.05rem;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 2rem 1rem 3rem;
+        }
+
+        form {
+          grid-template-columns: 1fr;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Track your work expenses</h1>
+        <p class="subtitle">
+          Capture receipts, categorise spending and keep an eye on your monthly
+          totals before submitting your report.
+        </p>
+      </header>
+
+      <section class="card">
+        <form id="expense-form" novalidate>
+          <label>
+            Expense name
+            <input
+              type="text"
+              id="expense-name"
+              name="expense-name"
+              placeholder="eg. Client lunch"
+              autocomplete="off"
+              required
+            />
+          </label>
+
+          <label>
+            Amount (£)
+            <input
+              type="number"
+              id="expense-amount"
+              name="expense-amount"
+              placeholder="0.00"
+              min="0.01"
+              step="0.01"
+              inputmode="decimal"
+              required
+            />
+          </label>
+
+          <label>
+            Category
+            <select id="expense-category" required>
+              <option value="">Select category</option>
+              <option value="Travel">Travel</option>
+              <option value="Meals">Meals</option>
+              <option value="Supplies">Supplies</option>
+              <option value="Training">Training</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <button type="submit">Add expense</button>
+        </form>
+      </section>
+
+      <section class="card" aria-live="polite">
+        <table id="expenses-table" hidden>
+          <thead>
+            <tr>
+              <th scope="col">Expense</th>
+              <th scope="col">Category</th>
+              <th scope="col">Date</th>
+              <th scope="col">Amount</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p id="empty-state" class="empty">No expenses captured yet.</p>
+        <div id="totals" class="totals" hidden></div>
+      </section>
+    </main>
+
+    <template id="expense-row">
+      <tr>
+        <td class="name"></td>
+        <td class="category"></td>
+        <td class="date"></td>
+        <td class="amount" data-value="0"></td>
+      </tr>
+    </template>
+
+    <script>
+      const form = document.getElementById('expense-form');
+      const nameField = document.getElementById('expense-name');
+      const amountField = document.getElementById('expense-amount');
+      const categoryField = document.getElementById('expense-category');
+      const expensesTable = document.getElementById('expenses-table');
+      const expensesBody = expensesTable.querySelector('tbody');
+      const emptyState = document.getElementById('empty-state');
+      const totalsContainer = document.getElementById('totals');
+      const rowTemplate = document.getElementById('expense-row');
+
+      const formatter = new Intl.NumberFormat('en-GB', {
+        style: 'currency',
+        currency: 'GBP',
+      });
+
+      const store = {
+        key: 'expenses-app-data',
+        fetch() {
+          try {
+            const raw = localStorage.getItem(this.key);
+            return raw ? JSON.parse(raw) : [];
+          } catch (error) {
+            console.error('Unable to read expenses from storage', error);
+            return [];
+          }
+        },
+        save(expenses) {
+          try {
+            localStorage.setItem(this.key, JSON.stringify(expenses));
+          } catch (error) {
+            console.error('Unable to persist expenses', error);
+          }
+        },
+      };
+
+      let expenses = store.fetch();
+
+      function isValidExpense({ name, amount, category }) {
+        const trimmedName = name.trim();
+        const parsedAmount = Number.parseFloat(amount);
+
+        if (!trimmedName) {
+          return false;
+        }
+
+        if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+          return false;
+        }
+
+        if (!category) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function renderExpenses() {
+        expensesBody.innerHTML = '';
+
+        if (!expenses.length) {
+          expensesTable.hidden = true;
+          totalsContainer.hidden = true;
+          emptyState.hidden = false;
+          return;
+        }
+
+        emptyState.hidden = true;
+        expensesTable.hidden = false;
+        totalsContainer.hidden = false;
+
+        const totalsByCategory = new Map();
+        let overallTotal = 0;
+
+        for (const expense of expenses) {
+          const clone = rowTemplate.content.firstElementChild.cloneNode(true);
+          clone.querySelector('.name').textContent = expense.name;
+          clone.querySelector('.category').textContent = expense.category;
+          clone.querySelector('.date').textContent = new Date(
+            expense.createdAt
+          ).toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          });
+          clone.querySelector('.amount').textContent = formatter.format(
+            expense.amount
+          );
+          clone.querySelector('.amount').dataset.value = String(expense.amount);
+
+          totalsByCategory.set(
+            expense.category,
+            (totalsByCategory.get(expense.category) || 0) + expense.amount
+          );
+          overallTotal += expense.amount;
+
+          expensesBody.appendChild(clone);
+        }
+
+        totalsContainer.innerHTML = '';
+        const overallChip = document.createElement('span');
+        overallChip.className = 'chip';
+        overallChip.textContent = `Total: ${formatter.format(overallTotal)}`;
+        totalsContainer.appendChild(overallChip);
+
+        for (const [category, total] of totalsByCategory) {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = `${category}: ${formatter.format(total)}`;
+          totalsContainer.appendChild(chip);
+        }
+      }
+
+      function handleSubmit(event) {
+        event.preventDefault();
+
+        const data = {
+          name: nameField.value,
+          amount: amountField.value,
+          category: categoryField.value,
+        };
+
+        if (!isValidExpense(data)) {
+          form.reportValidity();
+          return;
+        }
+
+        const amount = Number.parseFloat(data.amount);
+        const expense = {
+          name: data.name.trim(),
+          amount,
+          category: data.category,
+          createdAt: Date.now(),
+        };
+
+        expenses = [expense, ...expenses];
+        store.save(expenses);
+        form.reset();
+        nameField.focus();
+        renderExpenses();
+      }
+
+      function boot() {
+        if (!Array.isArray(expenses)) {
+          expenses = [];
+        }
+        renderExpenses();
+      }
+
+      form.addEventListener('submit', handleSubmit);
+      window.addEventListener('storage', () => {
+        expenses = store.fetch();
+        renderExpenses();
+      });
+
+      boot();
+    </script>
+  </body>
+</html>
