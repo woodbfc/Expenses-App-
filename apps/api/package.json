@@ -1,0 +1,36 @@
+{
+  "name": "@ops/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "lint": "echo 'no lint'",
+    "test": "echo 'no tests'",
+    "prisma": "prisma",
+    "db:seed": "ts-node src/seed.ts",
+    "demo:seed": "ts-node src/demo.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.3.8",
+    "@nestjs/core": "^10.3.8",
+    "@nestjs/platform-express": "^10.3.8",
+    "@nestjs/terminus": "^10.2.3",
+    "@prisma/client": "^5.20.0",
+    "@ops/shared": "workspace:*",
+    "@ops/parser": "workspace:*",
+    "bullmq": "^5.12.2",
+    "ioredis": "^5.4.1",
+    "pdfkit": "^0.15.0",
+    "zod": "^3.23.8",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.2",
+    "@nestjs/testing": "^10.3.8",
+    "prisma": "^5.20.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ExtractedItemType {
+  ACTION
+  PROJECT
+  RISK
+  DECISION
+  NOTE
+  PERSON
+  DEPENDENCY
+}
+
+enum ExtractedItemStatus {
+  TRIAGE
+  CONFIRMED
+  DISCARDED
+}
+
+enum ActionStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETE
+}
+
+enum RAGStatus {
+  RED
+  AMBER
+  GREEN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  dumps     Dump[]
+  settings  UserSettings?
+  auditLogs AuditLog[]
+}
+
+model UserSettings {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  priorityWeight     Float    @default(1)
+  dueSoonWeight      Float    @default(1)
+  projectValueWeight Float    @default(1)
+  user               User     @relation(fields: [userId], references: [id])
+}
+
+model Dump {
+  id              String   @id @default(uuid())
+  userId          String
+  rawText         String
+  sourceType      String
+  processedStatus String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+  extractedItems  ExtractedItem[]
+  actions         Action[]
+
+  @@index([userId, createdAt])
+}
+
+model ExtractedItem {
+  id          String              @id @default(uuid())
+  userId      String
+  dumpId      String
+  type        ExtractedItemType
+  rawSpan     String
+  confidence  Float
+  status      ExtractedItemStatus @default(TRIAGE)
+  payload     Json
+  createdAt   DateTime            @default(now())
+  user        User                @relation(fields: [userId], references: [id])
+  dump        Dump                @relation(fields: [dumpId], references: [id])
+
+  @@index([userId, status])
+}
+
+model Person {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  actions   Action[] @relation("ActionOwner")
+  waitingOn Action[] @relation("ActionWaitingOn")
+  projects  Project[] @relation("ProjectOwner")
+  stakes    ProjectStakeholder[]
+
+  @@index([userId, name])
+}
+
+model Action {
+  id                String       @id @default(uuid())
+  userId            String
+  title             String
+  description       String?
+  status            ActionStatus @default(OPEN)
+  priority          String
+  dueDate           DateTime?
+  sourceDumpId      String
+  projectId         String?
+  ownerId           String?
+  waitingOnPersonId String?
+  blockedByActionId String?
+  effort            String?
+  valueImpact       Float?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  user              User         @relation(fields: [userId], references: [id])
+  dump              Dump         @relation(fields: [sourceDumpId], references: [id])
+  project           Project?     @relation(fields: [projectId], references: [id])
+  owner             Person?      @relation("ActionOwner", fields: [ownerId], references: [id])
+  waitingOn         Person?      @relation("ActionWaitingOn", fields: [waitingOnPersonId], references: [id])
+  blockedBy         Action?      @relation("ActionBlock", fields: [blockedByActionId], references: [id])
+  blockers          Action[]     @relation("ActionBlock")
+  tags              ActionTag[]
+  risks             Risk[]
+
+  @@index([userId, status])
+  @@index([dueDate])
+}
+
+model Project {
+  id          String          @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  status      ProjectStatus  @default(ACTIVE)
+  rag         RAGStatus      @default(AMBER)
+  ownerId     String?
+  value       Float?
+  startDate   DateTime?
+  endDate     DateTime?
+  tags        ProjectTag[]
+  actions     Action[]
+  risks       Risk[]
+  milestones  Json?
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id])
+  owner       Person?         @relation("ProjectOwner", fields: [ownerId], references: [id])
+  stakeholders ProjectStakeholder[]
+
+  @@index([userId, rag])
+  @@unique([name, userId])
+}
+
+model ProjectStakeholder {
+  id        String  @id @default(uuid())
+  projectId String
+  personId  String
+  project   Project @relation(fields: [projectId], references: [id])
+  person    Person  @relation(fields: [personId], references: [id])
+
+  @@unique([projectId, personId])
+}
+
+model Risk {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  status      String   @default("OPEN")
+  projectId   String?
+  actionId    String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id])
+  action      Action?  @relation(fields: [actionId], references: [id])
+
+  @@index([userId, status])
+}
+
+model Decision {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String
+  tags      String[]
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Tag {
+  id   String @id @default(uuid())
+  name String @unique
+  actions ActionTag[]
+  projects ProjectTag[]
+}
+
+model ActionTag {
+  id       String @id @default(uuid())
+  actionId String
+  tagId    String
+  action   Action @relation(fields: [actionId], references: [id])
+  tag      Tag    @relation(fields: [tagId], references: [id])
+
+  @@unique([actionId, tagId])
+}
+
+model ProjectTag {
+  id        String @id @default(uuid())
+  projectId String
+  tagId     String
+  project   Project @relation(fields: [projectId], references: [id])
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@unique([projectId, tagId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  entity    String
+  entityId  String
+  action    String
+  payload   Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
